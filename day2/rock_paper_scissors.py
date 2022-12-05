@@ -1,6 +1,6 @@
 import argparse
-from pathlib import Path
 from enum import IntEnum
+from pathlib import Path
 
 
 class Outcome(IntEnum):

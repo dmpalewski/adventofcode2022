@@ -1,6 +1,6 @@
 import argparse
-from pathlib import Path
 import string
+from pathlib import Path
 from typing import Iterable, Set, Tuple
 
 
