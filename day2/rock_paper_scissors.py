@@ -2,8 +2,6 @@ import argparse
 from pathlib import Path
 from enum import IntEnum
 
-from black import out
-
 
 class Outcome(IntEnum):
     WIN = 6
@@ -20,7 +18,7 @@ class Figure(IntEnum):
 winning_figures_map = {
     Figure.ROCK: Figure.PAPER,
     Figure.PAPER: Figure.SCISSORS,
-    Figure.SCISSORS: Figure.ROCK
+    Figure.SCISSORS: Figure.ROCK,
 }
 
 
@@ -33,15 +31,11 @@ cypher2figure = {
     "C": Figure.SCISSORS,
     "X": Figure.ROCK,
     "Y": Figure.PAPER,
-    "Z": Figure.SCISSORS
+    "Z": Figure.SCISSORS,
 }
 
 
-cypher2outcome = {
-    "X": Outcome.LOSE,
-    "Y": Outcome.DRAW,
-    "Z": Outcome.WIN
-}
+cypher2outcome = {"X": Outcome.LOSE, "Y": Outcome.DRAW, "Z": Outcome.WIN}
 
 
 def get_outcome(opponent_figure: Figure, your_figure: Figure) -> Outcome:
@@ -68,7 +62,9 @@ def process_input_pt1(path: Path) -> int:
     total_score = 0
     with open(path, "r") as fin:
         for line in fin.readlines():
-            opponent_figure, your_figure = [cypher2figure.get(c) for c in line.strip().split()]
+            opponent_figure, your_figure = [
+                cypher2figure.get(c) for c in line.strip().split()
+            ]
             round_outcome = get_outcome(opponent_figure, your_figure)
             round_score = round_outcome + your_figure
             total_score += round_score
