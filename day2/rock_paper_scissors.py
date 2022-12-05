@@ -85,7 +85,7 @@ def process_input_pt2(path: Path) -> int:
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Run Calorie Counter")
+    parser = argparse.ArgumentParser(description="Run Rock, Paper, Scissiors.")
     parser.add_argument(
         "--input",
         type=Path,
