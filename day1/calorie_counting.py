@@ -21,7 +21,10 @@ class Expedition:
         self.elves.append(elf)
 
     def get_top_n_by_calories(self, n: int):
-        elves_sorted_desc = sorted(self.elves, key=lambda x: -x.total_calories,)
+        elves_sorted_desc = sorted(
+            self.elves,
+            key=lambda x: -x.total_calories,
+        )
         return elves_sorted_desc[:n]
 
     def get_total_calories_for_top_n(self, n: int = 3):
@@ -64,4 +67,6 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
     max_calories = process_input(args.input)
-    print(f"Total number of calories carrying by top {args.top_number} elves: {max_calories}")
+    print(
+        f"Total number of calories carrying by top {args.top_number} elves: {max_calories}"
+    )
