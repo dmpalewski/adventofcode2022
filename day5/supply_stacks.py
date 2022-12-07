@@ -15,8 +15,8 @@ class Stack:
     def add_crates_before(self, s: str):
         self.crates = s + self.crates
 
-    def add_crates_after(self, s: str):
-        self.crates += s[::-1]
+    def add_crates_after(self, s: str, retain_order):
+        self.crates += s if retain_order else s[::-1]
 
     def remove_n_crates(self, n: int):
         removed_crates = self.crates[-n:]
@@ -37,12 +37,14 @@ class Task:
     stacks: Dict[str, Stack]
     operations: List[Operation]
 
-    def complete_all_operations(self):
+    def complete_all_operations(self, retain_order=False):
         for operation in self.operations:
             removed_crates = self.stacks.get(operation.move_from).remove_n_crates(
                 operation.num_crates
             )
-            self.stacks.get(operation.move_to).add_crates_after(removed_crates)
+            self.stacks.get(operation.move_to).add_crates_after(
+                removed_crates, retain_order
+            )
 
     def get_codes_of_top_crates(self):
         codes = "".join([self.stacks[stack_id].crates[-1] for stack_id in self.ids])
@@ -70,7 +72,7 @@ def parse_input(path: Path) -> Task:
         for crate_row in crate_rows:
             row_len = len(crate_row)
             for i, start in enumerate(range(0, row_len, 4)):
-                crate = crate_row[start : min(row_len, start + 4)][1]
+                crate = crate_row[start: min(row_len, start + 4)][1]
                 if not crate.isspace():
                     stack_id = stack_ids[i]
                     stack_map[stack_id].add_crates_before(crate)
@@ -84,6 +86,13 @@ def process_input(path: Path) -> str:
     return message
 
 
+def process_input_pt_2(path: Path) -> str:
+    task = parse_input(path=path)
+    task.complete_all_operations(retain_order=True)
+    message = task.get_codes_of_top_crates()
+    return message
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Run Supply Stack.")
     parser.add_argument(
@@ -93,5 +102,5 @@ if __name__ == "__main__":
         help="Path to the input file.",
     )
     args = parser.parse_args()
-    message = process_input(args.input)
+    message = process_input_pt_2(args.input)
     print(f"Message for the elves {message}.")
