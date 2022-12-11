@@ -9,6 +9,9 @@ FOLDER_PATTERN = re.compile(r"^dir (\S+)$")
 GET_PARENT_PATTERN = re.compile(r"^\$ cd \.\.$")
 VISIT_FOLDER_PATTERN = re.compile(r"^\$ cd (?!\.\.)(\S+)$")
 
+TOTAL_SPACE = 70000000
+REQUIRED_SPACE = 30000000
+
 
 @dataclass
 class File:
@@ -35,6 +38,7 @@ class Folder(BaseFolder):
         own_files_size = sum(f.get_size() for f in self.files)
         own_folders_size = sum(f.get_size() for f in self.folders)  # type:ignore
         total_size = own_files_size + own_folders_size
+        self.size = total_size
         return total_size
 
     def add_file(self, file: File):
@@ -101,12 +105,34 @@ def find_sizes_bfs(root: Folder) -> List[BaseFolder]:
     return folders_with_sizes
 
 
+def find_best_smallest_folder_to_delete(
+    folders_with_sizes: List[BaseFolder], need_to_free: int
+) -> BaseFolder:
+    result = folders_with_sizes[0]  # delete root by default
+    for folder in sorted(folders_with_sizes, key=lambda x: x.size):
+        if folder.size >= need_to_free:
+            result = folder
+            break
+    return result
+
+
 def process_input(path: Path, limit: int) -> int:
     root_folder = build_folder_structure(path)
     folders_with_sizes = find_sizes_bfs(root_folder)
     folders_smaller_then_limit = [f for f in folders_with_sizes if f.size <= limit]
     total_size_smaller_than_limit = sum([f.size for f in folders_smaller_then_limit])
     return total_size_smaller_than_limit
+
+
+def process_input_pt_2(path: Path) -> int:
+    root_folder = build_folder_structure(path)
+    folders_with_sizes = find_sizes_bfs(root_folder)
+    current_free_space = TOTAL_SPACE - root_folder.size
+    need_to_free_space = REQUIRED_SPACE - current_free_space
+    folder_to_del = find_best_smallest_folder_to_delete(
+        folders_with_sizes, need_to_free_space
+    )
+    return folder_to_del.size
 
 
 if __name__ == "__main__":
@@ -126,3 +152,6 @@ if __name__ == "__main__":
     args = parser.parse_args()
     total_size = process_input(args.input, args.limit)
     print(f"Total size of the directories {total_size}")
+
+    size_to_del = process_input_pt_2(args.input)
+    print(f"Size of the smallest folder to delete {size_to_del}")
