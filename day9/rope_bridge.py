@@ -70,19 +70,24 @@ class TailKnot(Knot):
             self.move_right()
 
     def adjust(self):
+        completed_move = False
         self._calculate_position_diff()
-        if self.position_diff.x == -2:
+        if self.position_diff.x == -2 and not completed_move:
             self.move_left()
             self._diagonal_move_y()
-        elif self.position_diff.x == 2:
+            completed_move = True
+        elif self.position_diff.x == 2 and not completed_move:
             self.move_right()
             self._diagonal_move_y()
-        if self.position_diff.y == -2:
+            completed_move = True
+        if self.position_diff.y == -2 and not completed_move:
             self.move_down()
             self._diagonal_move_x()
-        elif self.position_diff.y == 2:
+            completed_move = True
+        elif self.position_diff.y == 2 and not completed_move:
             self.move_up()
             self._diagonal_move_x()
+            completed_move = True
 
 
 @dataclass
@@ -107,11 +112,17 @@ class Rope:
             tail_knot.mark_current_as_visited()
 
 
-def process_input(path: Path) -> int:
-    pos_head, pos_tail = Position(0, 0), Position(0, 0)
-    head = Knot(position=pos_head, visited=set())
-    tail = TailKnot(position=pos_tail, visited=set(), previous_knot=head)
-    rope = Rope(head, [tail])
+def process_input(path: Path, num_knots=2) -> int:
+    head = Knot(position=Position(0, 0), visited=set())
+    previous_knot = head
+    tail_knots = []
+    for _ in range(num_knots - 1):
+        tail_knot = TailKnot(
+            position=Position(0, 0), visited=set(), previous_knot=previous_knot
+        )
+        tail_knots.append(tail_knot)
+        previous_knot = tail_knot
+    rope = Rope(head, tail_knots)
     with open(path, "r") as fin:
         for line in fin.readlines():
             direction, num_steps = line.split()
@@ -132,3 +143,6 @@ if __name__ == "__main__":
     args = parser.parse_args()
     num_visited_by_tail = process_input(args.input)
     print(f"Total positions visited by tail {num_visited_by_tail}")
+
+    num_visited_by_tail = process_input(Path(args.input), 10)
+    print(f"Total positions visited by tail of the longer rope {num_visited_by_tail}")
