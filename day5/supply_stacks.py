@@ -72,7 +72,7 @@ def parse_input(path: Path) -> Task:
         for crate_row in crate_rows:
             row_len = len(crate_row)
             for i, start in enumerate(range(0, row_len, 4)):
-                crate = crate_row[start: min(row_len, start + 4)][1]
+                crate = crate_row[start : min(row_len, start + 4)][1]
                 if not crate.isspace():
                     stack_id = stack_ids[i]
                     stack_map[stack_id].add_crates_before(crate)

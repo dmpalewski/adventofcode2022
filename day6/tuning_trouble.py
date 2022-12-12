@@ -1,7 +1,6 @@
 import argparse
 from pathlib import Path
 
-
 DEFAULT_MARKER_SIZE = 4
 
 
@@ -11,7 +10,7 @@ def process_input(path: Path, marker_size: int) -> int:
         stream = fin.read()
         stream_size = len(stream)
         for i in range(0, stream_size - marker_size):
-            marker = stream[i: i + marker_size]
+            marker = stream[i : i + marker_size]
             if len(set(marker)) == marker_size:
                 num_chars_before_marker = i + marker_size
                 break
