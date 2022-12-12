@@ -1,8 +1,8 @@
 import argparse
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
-from typing import Set, Tuple, Union
+from typing import List, Set, Tuple, Union
 
 
 class Direction(str, Enum):
@@ -21,7 +21,7 @@ class Position:
 @dataclass
 class Knot:
     position: Position
-    visited: Set[Tuple[int, int]] = field(default_factory=set)
+    visited: Set[Tuple[int, int]]
 
     def __post_init__(self):
         self.mark_current_as_visited()
@@ -38,18 +38,6 @@ class Knot:
     def move_down(self):
         self.position.y -= 1
 
-    def diagonal_move_y(self, diff: Position):
-        if diff.y < 0:
-            self.move_down()
-        elif diff.y > 0:
-            self.move_up()
-
-    def diagonal_move_x(self, diff: Position):
-        if diff.x < 0:
-            self.move_left()
-        elif diff.x > 0:
-            self.move_right()
-
     def mark_current_as_visited(self):
         self.visited.add(
             (
@@ -60,30 +48,47 @@ class Knot:
 
 
 @dataclass
+class TailKnot(Knot):
+    previous_knot: Knot
+    position_diff: Position = Position(0, 0)
+
+    def _calculate_position_diff(self):
+        x_diff = self.previous_knot.position.x - self.position.x
+        y_diff = self.previous_knot.position.y - self.position.y
+        self.position_diff = Position(x_diff, y_diff)
+
+    def _diagonal_move_y(self):
+        if self.position_diff.y < 0:
+            self.move_down()
+        elif self.position_diff.y > 0:
+            self.move_up()
+
+    def _diagonal_move_x(self):
+        if self.position_diff.x < 0:
+            self.move_left()
+        elif self.position_diff.x > 0:
+            self.move_right()
+
+    def adjust(self):
+        self._calculate_position_diff()
+        if self.position_diff.x == -2:
+            self.move_left()
+            self._diagonal_move_y()
+        elif self.position_diff.x == 2:
+            self.move_right()
+            self._diagonal_move_y()
+        if self.position_diff.y == -2:
+            self.move_down()
+            self._diagonal_move_x()
+        elif self.position_diff.y == 2:
+            self.move_up()
+            self._diagonal_move_x()
+
+
+@dataclass
 class Rope:
     head: Knot
-    tail: Knot
-
-    def _get_position_diff(self) -> Position:
-        x_diff = self.head.position.x - self.tail.position.x
-        y_diff = self.head.position.y - self.tail.position.y
-        return Position(x_diff, y_diff)
-
-    def _adjust_tail(self):
-        diff = self._get_position_diff()
-        if diff.x == -2:
-            self.tail.move_left()
-            self.tail.diagonal_move_y(diff)
-        elif diff.x == 2:
-            self.tail.move_right()
-            self.tail.diagonal_move_y(diff)
-
-        if diff.y == -2:
-            self.tail.move_down()
-            self.tail.diagonal_move_x(diff)
-        elif diff.y == 2:
-            self.tail.move_up()
-            self.tail.diagonal_move_x(diff)
+    tail: List[TailKnot]
 
     def move_rope(self, direction: Union[str, Direction]):
         match direction:
@@ -95,22 +100,24 @@ class Rope:
                 self.head.move_up()
             case Direction.DOWN:
                 self.head.move_down()
-        self._adjust_tail()
         self.head.mark_current_as_visited()
-        self.tail.mark_current_as_visited()
+
+        for tail_knot in self.tail:
+            tail_knot.adjust()
+            tail_knot.mark_current_as_visited()
 
 
 def process_input(path: Path) -> int:
     pos_head, pos_tail = Position(0, 0), Position(0, 0)
-    head = Knot(pos_head)
-    tail = Knot(pos_tail)
-    rope = Rope(head, tail)
+    head = Knot(position=pos_head, visited=set())
+    tail = TailKnot(position=pos_tail, visited=set(), previous_knot=head)
+    rope = Rope(head, [tail])
     with open(path, "r") as fin:
         for line in fin.readlines():
             direction, num_steps = line.split()
             for _ in range(int(num_steps)):
                 rope.move_rope(direction)
-    num_visited_by_tail = len(rope.tail.visited)
+    num_visited_by_tail = len(rope.tail[-1].visited)
     return num_visited_by_tail
 
 
